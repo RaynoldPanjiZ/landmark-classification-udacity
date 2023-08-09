@@ -63,12 +63,12 @@ def valid_one_epoch(valid_dataloader, model, loss):
 
     with torch.no_grad():
 
+        if torch.cuda.is_available():
+            model.cuda()
+
         # set the model to evaluation mode
         # YOUR CODE HERE
         model.eval()
-
-        if torch.cuda.is_available():
-            model.cuda()
 
         valid_loss = 0.0
         for batch_idx, (data, target) in tqdm(
