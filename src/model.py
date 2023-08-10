@@ -16,27 +16,60 @@ class MyModel(nn.Module):
         
         ## input : 3 x 224 x 224
         self.layer1 = nn.Sequential(
-            nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1),  ## conv1: [3x224x224] -> [16x224x224]
+            nn.Conv2d(3, 8, kernel_size=3, stride=1, padding=1),  ## conv1: [3x224x224] -> [8x224x224]
             nn.ReLU(),
-            nn.BatchNorm2d(16),
-            nn.MaxPool2d(kernel_size=2, stride=2))  ## maxpool: [16x224x224] -> [16x112x112]
+            nn.BatchNorm2d(8),
+            nn.MaxPool2d(kernel_size=2, stride=2))  ## maxpool: [8 x 224 x 224] -> [8 x 112 x 112]
         self.dropout = nn.Dropout(p=dropout)
         
         self.layer2 = nn.Sequential(
-            nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),  ## conv2: [16x112x112] -> [32x112x112]
+            nn.Conv2d(8, 16, kernel_size=3, stride=1, padding=1),  ## conv2: [8 x 112 x 112] -> [16 x 112 x 112]
             nn.ReLU(),
-            nn.BatchNorm2d(32),
-            nn.MaxPool2d(kernel_size=2, stride=2))  ## maxpool: [32 x 112 x 112] -> [32 x 56 x 56]
+            nn.BatchNorm2d(16),
+            nn.MaxPool2d(kernel_size=2, stride=2))  ## maxpool: [16 x 112 x 112] -> [16 x 56 x 56]
         self.dropout = nn.Dropout(p=dropout)
         
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),  ## conv2: [16 x 56 x 56] -> [32 x 56 x 56]
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            nn.MaxPool2d(kernel_size=2, stride=2))  ## maxpool: [32 x 56 x 56] -> [32 x 28 x 28]
+        self.dropout = nn.Dropout(p=dropout)
         
+        self.layer4 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),  ## conv2: [32 x 28 x 28] -> [64 x 28 x 28]
+            nn.ReLU(),
+            nn.BatchNorm2d(64),
+            nn.MaxPool2d(kernel_size=2, stride=2))  ## maxpool: [64 x 28 x 28] -> [64 x 14 x 14]
+        self.dropout = nn.Dropout(p=dropout)
+        
+        self.layer5 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),  ## conv2: [64 x 14 x 14] -> [128 x 14 x 14]
+            nn.ReLU(),
+            nn.BatchNorm2d(128),
+            nn.MaxPool2d(kernel_size=2, stride=2))  ## maxpool: [128 x 14 x 14] -> [128 x 7 x 7]
+        self.dropout = nn.Dropout(p=dropout)
+
         self.fc = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(32 * 56 * 56, 256, bias=True),  ## linear: [32 x 56 x 56] -> 256
+
+            nn.Linear(128 * 7 * 7, 512, bias=True),  ## linear: [128 x 7 x 7] -> 512
             nn.ReLU(),
-            
             nn.Dropout(p=dropout),
-            nn.Linear(256, num_classes)  ## classifier: 256 -> num_classes
+            
+            nn.Linear(512, 256, bias=True),  ## linear: 512 -> 256
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            
+            nn.Linear(256, 128, bias=True),  ## linear: 256 -> 128
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            
+            nn.Linear(128, 64, bias=True),  ## linear: 128 -> 64
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            
+            nn.Linear(64, num_classes)  ## classifier: 64 -> num_classes
 #             nn.LogSoftmax(dim=1)
         )
 
@@ -50,6 +83,15 @@ class MyModel(nn.Module):
         x = self.layer2(x)
         x = self.dropout(x)
         
+        x = self.layer3(x)
+        x = self.dropout(x)
+
+        x = self.layer4(x)
+        x = self.dropout(x)
+        
+        x = self.layer5(x)
+        x = self.dropout(x)
+
         x = self.fc(x)
         return x
 
